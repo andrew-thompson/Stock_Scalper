@@ -1,5 +1,9 @@
 import datetime
 import requests
+import key_manager
+
+
+sandbox = True
 
 # Holidays which the stock market is closed in 2021
 holidays = ["2021-01-01",
@@ -67,17 +71,24 @@ def grab_data(ticker: str) -> None:
     :return: None
     """
 
+    if sandbox:
+        url = key_manager.sandbox_url
+        key = key_manager.sandbox_key
+    else:
+        url = key_manager.production_url
+        key = key_manager.production_key
+
     file_object = open(ticker + "_1m.txt", 'w+')
 
     for days_prior in range(30):
         date = datetime.date.today() - datetime.timedelta(days_prior)
         if date.isoweekday() in range(1, 6) and date not in holidays:
             date = date.strftime("%Y%m%d")
-            response = requests.get("https://sandbox.iexapis.com/stable/stock/" +
+            response = requests.get(url + "stable/stock/" +
                                     ticker +
                                     "/chart/date/" +
                                     date +
-                                    "?token=Tpk_8e791aca0b424ddfb17954a723f7c99a")
+                                    "?token=" + key)
             data = response.json()
             for minute in data:
                 file_object.write(str(minute["average"]) + "\n")
